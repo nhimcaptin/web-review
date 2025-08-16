@@ -1,0 +1,66 @@
+.table-custom .MuiDataGrid-columnHeaderTitle {
+  font-weight: 700;
+  color: #1c2b33;
+  font-size: 14px;
+}
+
+.table-custom .MuiDataGrid-menuIcon {
+  width: auto !important;
+  visibility: visible !important;
+}
+
+.table-custom .MuiDataGrid-menuIcon .MuiIconButton-root {
+  background-color: rgb(245, 246, 247);
+  border-radius: 5px;
+}
+
+.table-custom .MuiDataGrid-cell--textLeft {
+  border-right: 1px solid #e0e0e0;
+  color: #1c2b33;
+}
+.table-custom .MuiDataGrid-columnHeader {
+  border-right: 1px solid #e0e0e0;
+}
+
+.table-custom .MuiDataGrid-cell[data-field="accountName"] {
+  color: #0a78be;
+}
+.table-custom .MuiDataGrid-cell[data-field="accountName"]:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.table-custom .MuiDataGrid-cell[data-field="accountName"]:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
+.table-custom .MuiDataGrid-cell:focus {
+  outline: unset !important;
+}
+
+.table-custom .last-row p:not(.number) {
+  color: #1c2b33;
+  font-weight: 700;
+}
+
+.table-custom .row-number {
+  text-align: right;
+}
+
+.table-custom .row-number span {
+  font-size: 12px;
+  color: #1c2b33a6;
+}
+
+.table-custom
+  .MuiDataGrid-row--lastVisible
+  .MuiDataGrid-cell[data-field="accountName"]:hover {
+  text-decoration: none;
+}
+
+.table-custom
+  .MuiDataGrid-row--lastVisible
+  .MuiDataGrid-cell[data-field="__check__"]
+  .MuiCheckbox-root {
+  display: none;
+}

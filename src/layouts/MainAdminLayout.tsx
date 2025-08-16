@@ -3,12 +3,14 @@ import React from "react";
 import LoadingScreen from "@/components/Loading";
 import useStoreLoading from "@/stores/loadingStore";
 import { makeStyles } from "@mui/styles";
-import SideBar from "./SideBar";
+import ROUTERS_PATHS from "@/constants/router-paths";
+import { useNavigate } from "react-router-dom";
+import clsx from "clsx";
 
 const useStyles = makeStyles({
   mainContainer: {
     marginTop: 0,
-    marginLeft: 56,
+    marginLeft: 140,
     left: 0,
     position: "relative",
     transition: "all 0.3s ease-in-out",
@@ -23,19 +25,18 @@ const useStyles = makeStyles({
   },
 });
 
-interface MainLayoutProps {
+interface MainAdminLayoutProps {
   children: React.ReactNode;
 }
 
-const MainLayout = ({ children }: MainLayoutProps) => {
+const MainAdminLayout = ({ children }: MainAdminLayoutProps) => {
   const classes = useStyles();
+  const navigate = useNavigate();
   const isLoading = useStoreLoading((state) => state.loading);
-  const [windowHeight, setWindowHeight] = React.useState(
-    window.innerHeight - 24
-  );
+  const [windowHeight, setWindowHeight] = React.useState(window.innerHeight - 0);
 
   const updateHeight = () => {
-    setWindowHeight(window.innerHeight - 24);
+    setWindowHeight(window.innerHeight - 0);
   };
 
   React.useEffect(() => {
@@ -45,16 +46,13 @@ const MainLayout = ({ children }: MainLayoutProps) => {
 
   return (
     <>
-      <SideBar />
-      <div
-        className={classes.mainContainer}
-        style={{ minHeight: windowHeight }}
-      >
+      
         <div className={classes.paperContainer}>{children}</div>
+      <div className={classes.mainContainer} style={{ minHeight: windowHeight }}>
       </div>
       {isLoading && <LoadingScreen />}
     </>
   );
 };
 
-export default MainLayout;
+export default MainAdminLayout;
