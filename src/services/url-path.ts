@@ -33,6 +33,9 @@ const URL_PATHS = {
   UPDATE_CHART: "charts/update/:id",
   DELETE_CHART: "charts/delete/:id",
   GET_MENU_CHART: "form_face/get-menu",
+
+  GET_DETAIL_HOME: "reviews/:id",
+  GET_HOME: "reviews",
 };
 
 export default URL_PATHS;

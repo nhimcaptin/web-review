@@ -1,0 +1,20 @@
+.boxImage {
+    display: flex;
+}
+
+.button {
+    gap: 3;
+    width: 100px;
+    height: 100px;
+    border-radius: 4px !important;
+    border: #757070 1px dashed;
+    display: flex;
+    flex-direction: column;
+    margin-right: 10px;
+}
+
+.title {
+    color: #9c9c9c;
+    font-size: 8px;
+    font-weight: 700;
+}

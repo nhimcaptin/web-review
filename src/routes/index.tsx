@@ -1,6 +1,6 @@
 import LoadingScreen from "@/components/Loading";
 import ROUTERS_PATHS from "@/constants/router-paths";
-import MainAdminLayout from "@/layouts/MainAdminLayout";
+import MainLayout from "@/layouts";
 import React, { Suspense, lazy } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 
@@ -35,12 +35,17 @@ export const renderRoutes = (routes: IRoutesState[]) => (
 
 const routes: IRoutesState[] = [
   {
-    layout: MainAdminLayout,
+    layout: MainLayout,
+    path: ROUTERS_PATHS.HOME,
+    component: lazy(() => import("@/pages/Home")),
+  },
+  {
+    layout: MainLayout,
     path: ROUTERS_PATHS.ADMIN_AD,
     component: lazy(() => import("@/pages/AdminAds")),
   },
   {
-    layout: MainAdminLayout,
+    layout: MainLayout,
     path: ROUTERS_PATHS.ADMIN_FORM_FACE,
     component: lazy(() => import("@/pages/AdminFormFace")),
   },
