@@ -10,12 +10,14 @@ import {
   IconButton,
   Paper,
   Popover,
+  Rating,
   styled,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
+  TablePagination,
   TableRow,
 } from "@mui/material";
 import moment from "moment";
@@ -73,6 +75,9 @@ const Home = () => {
   const [dataSelected, setDataSelected] = useState(null);
   const [isView, setIsView] = useState(false);
   const [dataDetail, setDataDetail] = useState(null);
+  const [totalCount, setTotalCount] = useState<number>(0);
+  const [page, setPage] = useState<number>(1);
+  const [rowsPerPage, setRowsPerPage] = useState<number>(10);
   const open = Boolean(anchorEl);
   const id = open ? "simple-popover" : undefined;
 
@@ -134,12 +139,19 @@ const Home = () => {
     }
   };
 
-  const getList = async () => {
+  const getList = async (context?: any) => {
     try {
       showLoading();
-      const data: any = await axiosInstance.get(URL_PATHS.GET_HOME);
+      const pageSize = !!context && context.hasOwnProperty("pageSize") ? context.pageSize || 0 : rowsPerPage;
+      const pageIndex = !!context && context.hasOwnProperty("pageIndex") ? context.pageIndex || 1 : page;
+      const params = {
+        pageIndex: pageIndex,
+        pageSize: pageSize,
+      };
+      const data: any = await axiosInstance.get(URL_PATHS.GET_HOME, { params });
       if (data?.success) {
         setDataList(data?.data?.reviews);
+        setTotalCount(data?.data?.pagination?.totalItems);
       } else {
         toast.error(MESSAGE_API.errorApi, {
           position: "top-right",
@@ -220,6 +232,23 @@ const Home = () => {
     }
   };
 
+  const handleChangePage = (_event: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => {
+    setPage(newPage + 1);
+    getList({
+      pageIndex: newPage + 1,
+      pageSize: rowsPerPage,
+    });
+  };
+
+  const handleChangeRowsPerPage = async (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setPage(1);
+    setRowsPerPage(parseInt(event.target.value));
+    getList({
+      pageIndex: 1,
+      pageSize: parseInt(event.target.value),
+    });
+  };
+
   useEffect(() => {
     getList();
   }, []);
@@ -237,7 +266,7 @@ const Home = () => {
         Add new
       </Button>
       <Paper sx={{ width: "100%" }}>
-        <TableContainer sx={{ maxHeight: 440 }}>
+        <TableContainer sx={{ maxHeight: window.innerHeight - 200 }}>
           <Table stickyHeader aria-label="sticky table">
             <TableHead>
               <TableRow>
@@ -254,17 +283,17 @@ const Home = () => {
                 return (
                   <StyledTableRow hover role="checkbox" tabIndex={-1} key={row.id}>
                     {columns.map((col: any, index: number) => {
-                      if (["status", "endsOngoing"].includes(col?.id)) {
-                        return (
-                          <TableCell key={`${col?.id}${index}`} align={col.align}>
-                            {row[col?.id] ? "On" : "Off"}
-                          </TableCell>
-                        );
-                      }
-                      if (col?.id === "endsDate") {
+                      if (col?.id === "created") {
                         return (
                           <TableCell key={`${col?.id}${index}`} align={col.align}>
                             {row[col?.id] ? moment(row[col?.id]).format("DD/MM/YYYY") : ""}
+                          </TableCell>
+                        );
+                      }
+                      if (col?.id === "rate") {
+                        return (
+                          <TableCell key={`${col?.id}${index}`} align={col.align}>
+                            <Rating name="simple-controlled" value={row[col?.id]} readOnly />
                           </TableCell>
                         );
                       }
@@ -290,6 +319,17 @@ const Home = () => {
           </Table>
         </TableContainer>
       </Paper>
+      {totalCount > 0 && (
+        <TablePagination
+          rowsPerPageOptions={[10, 20, 50]}
+          component="div"
+          count={totalCount}
+          rowsPerPage={rowsPerPage}
+          page={page - 1}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
+      )}
       <IF condition={open}>
         <Popover
           id={id}

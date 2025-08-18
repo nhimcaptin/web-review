@@ -101,6 +101,7 @@ const ModalReview = (props: any) => {
         });
       }
     }
+    return files
   };
 
   const onSubmit = async (data: any) => {
