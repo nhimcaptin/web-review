@@ -56,7 +56,6 @@ const refreshAccessToken = async () => {
 };
 
 const errorHandler = async (error: any, isHandlerEnabled?: boolean) => {
-  // console.log('🚀 ~ errorHandler ~ error:', error);
   const config = error?.config;
   if (error?.response?.status === 401) {
     if (!config._retry && config.url !== URL_PATHS.REFRESH_TOKEN) {

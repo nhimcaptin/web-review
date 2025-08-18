@@ -17,6 +17,10 @@ import {
 import { useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import styles from "./styles.module.scss";
+import { Bounce, toast } from "react-toastify";
+import MESSAGE_API from "@/constants/message";
+import axiosInstance from "@/services/api-services";
+import URL_PATHS from "@/services/url-path";
 
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
   "& .MuiDialogContent-root": {
@@ -34,7 +38,7 @@ const ModalReview = (props: any) => {
   const [deleteVideoUrls, setDeleteVideoUrls] = useState<string[]>([]);
   const { handleSubmit, control } = useForm<any>({
     defaultValues: {
-      images: defaultValues?.image || [],
+      images: defaultValues?.images || [],
       videos: defaultValues?.videos || [],
       title: defaultValues?.title || "",
       description: defaultValues?.description || "",
@@ -42,7 +46,7 @@ const ModalReview = (props: any) => {
       verified_purchase: defaultValues?.verified_purchase || false,
       would_recommend: defaultValues?.would_recommend || false,
       user: defaultValues?.user || "",
-      like: defaultValues?.like || 0,
+      likes: defaultValues?.likes || 0,
     },
     mode: "onChange",
     reValidateMode: "onChange",
@@ -51,10 +55,119 @@ const ModalReview = (props: any) => {
   const inputImageRef = useRef<HTMLInputElement>(null);
   const inputVideoRef = useRef<HTMLInputElement>(null);
 
-  const onSubmit = (data: any) => {
+  const uploadFiles = async (files: any) => {
+    const urlsFile = files.filter((item: any) => typeof item !== "string");
+    const urlsString = files.filter((item: any) => typeof item === "string");
+    if (Array.isArray(urlsFile) && urlsFile.length > 0) {
+      const formData = new FormData();
+      urlsFile.forEach((file: File) => {
+        formData.append("files", file);
+      });
+      try {
+        const uploadResponse: any = await axiosInstance.post(URL_PATHS.UPLOAD_IMAGE, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+
+
+        if (!uploadResponse?.success) {
+          toast.error(MESSAGE_API.errorApi, {
+            position: "top-right",
+            autoClose: 1000,
+            hideProgressBar: false,
+            closeOnClick: false,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "light",
+            transition: Bounce,
+          });
+          return [];
+        }
+        const uploadedFiles = uploadResponse?.data?.map((x: any) => x?.filename);
+        return [...uploadedFiles, ...urlsString];
+      } catch (error) {
+        toast.error(MESSAGE_API.errorApi, {
+          position: "top-right",
+          autoClose: 1000,
+          hideProgressBar: false,
+          closeOnClick: false,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+          transition: Bounce,
+        });
+      }
+    }
+  };
+
+  const onSubmit = async (data: any) => {
     try {
       showLoading();
+      data.images = await uploadFiles(data?.images);
+      data.videos = await uploadFiles(data?.videos);
+      const response: any = props?.defaultValues
+        ? await axiosInstance.put(URL_PATHS.UPDATE.replace(":id", props?.defaultValues?.id), data)
+        : await axiosInstance.post(URL_PATHS.CREATE, data);
+      const _deleteImageUrls = deleteImageUrls.filter((item: any) => typeof item === "string");
+      if (_deleteImageUrls.length > 0) {
+        try {
+          const deletePromises = _deleteImageUrls.map((filename: any) =>
+            axiosInstance.delete(URL_PATHS.DELETE_IMAGE.replace(":filename", filename), { params: { type: 'images' } })
+          );
+          await Promise.all(deletePromises);
+        } catch (error) {}
+      }
+      const _deleteVideoUrls = deleteVideoUrls.filter((item: any) => typeof item === "string");
+      if (_deleteVideoUrls.length > 0) {
+        try {
+          const deletePromises = _deleteVideoUrls.map((filename: any) =>
+            axiosInstance.delete(URL_PATHS.DELETE_IMAGE.replace(":filename", filename), { params: { type: 'videos' } })
+          );
+          await Promise.all(deletePromises);
+        } catch (error) {}
+      }
+      if (!!response?.success) {
+        await props.getList();
+        toast.success(props?.defaultValues ? MESSAGE_API.createSuccess : MESSAGE_API.updateSuccess, {
+          position: "top-right",
+          autoClose: 1000,
+          hideProgressBar: false,
+          closeOnClick: false,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+          transition: Bounce,
+        });
+        props.handleClose();
+      } else {
+        toast.error(MESSAGE_API.errorApi, {
+          position: "top-right",
+          autoClose: 1000,
+          hideProgressBar: false,
+          closeOnClick: false,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+          transition: Bounce,
+        });
+      }
     } catch (error) {
+      toast.error(MESSAGE_API.errorApi, {
+        position: "top-right",
+        autoClose: 1000,
+        hideProgressBar: false,
+        closeOnClick: false,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        transition: Bounce,
+      });
     } finally {
       hideLoading();
     }
@@ -132,7 +245,7 @@ const ModalReview = (props: any) => {
                             <img
                               src={
                                 typeof img === "string"
-                                  ? import.meta.env.VITE_BASE_FOLDER + img
+                                  ? import.meta.env.VITE_BASE_IMAGE + img
                                   : URL.createObjectURL(img)
                               }
                               alt={`Preview ${index + 1}`}
@@ -207,7 +320,7 @@ const ModalReview = (props: any) => {
                       <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
                         {value.map((vid: File | string, index: number) => {
                           const src =
-                            vid instanceof File ? URL.createObjectURL(vid) : import.meta.env.VITE_BASE_FOLDER + vid;
+                            vid instanceof File ? URL.createObjectURL(vid) : import.meta.env.VITE_BASE_VIDEO + vid;
 
                           return (
                             <div key={index} style={{ height: 100, width: 150, position: "relative" }}>
@@ -298,16 +411,17 @@ const ModalReview = (props: any) => {
               />
             </Grid>
             <Grid size={4}>
-              <p style={{ fontWeight: 500, fontSize: 16, marginBottom: 5 }}>Like</p>
+              <p style={{ fontWeight: 500, fontSize: 16, marginBottom: 5 }}>Likes</p>
               <Controller
                 control={control}
-                name="like"
-                render={({ field }) => (
+                name="likes"
+                render={({ field: { onChange, value } }) => (
                   <TextFieldCustom
-                    {...field}
+                    onChange={onChange}
+                    value={value}
                     fullWidth
                     disabled={props?.isView}
-                    placeholder="Enter Like"
+                    placeholder="Enter likes"
                     type="number"
                   />
                 )}

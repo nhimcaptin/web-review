@@ -40,16 +40,6 @@ const routes: IRoutesState[] = [
     component: lazy(() => import("@/pages/Home")),
   },
   {
-    layout: MainLayout,
-    path: ROUTERS_PATHS.ADMIN_AD,
-    component: lazy(() => import("@/pages/AdminAds")),
-  },
-  {
-    layout: MainLayout,
-    path: ROUTERS_PATHS.ADMIN_FORM_FACE,
-    component: lazy(() => import("@/pages/AdminFormFace")),
-  },
-  {
     path: "*",
     component: () => <Navigate to={ROUTERS_PATHS.HOME} replace />,
   },

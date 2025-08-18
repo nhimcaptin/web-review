@@ -52,8 +52,8 @@ const columns: any = [
     align: "start",
   },
   {
-    id: "like",
-    label: "Like",
+    id: "likes",
+    label: "Likes",
     minWidth: 150,
     align: "start",
   },
@@ -170,7 +170,55 @@ const Home = () => {
     }
   };
 
-  const handleDelete = async (item: any) => {};
+  const handleDelete = async (item: any) => {
+    setAnchorEl(null);
+    if (confirm("Are you sure you want to delete this record?")) {
+      try {
+        showLoading();
+        const data: any = await axiosInstance.delete(URL_PATHS.DELETE.replace(":id", item?.id));
+        if (!!data?.success) {
+          await getList();
+          toast.error(MESSAGE_API.deleteSuccess, {
+            position: "top-right",
+            autoClose: 1000,
+            hideProgressBar: false,
+            closeOnClick: false,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "light",
+            transition: Bounce,
+          });
+        } else {
+          toast.error(MESSAGE_API.errorApi, {
+            position: "top-right",
+            autoClose: 1000,
+            hideProgressBar: false,
+            closeOnClick: false,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "light",
+            transition: Bounce,
+          });
+        }
+      } catch (error) {
+        toast.error(MESSAGE_API.errorApi, {
+          position: "top-right",
+          autoClose: 1000,
+          hideProgressBar: false,
+          closeOnClick: false,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+          transition: Bounce,
+        });
+      } finally {
+        hideLoading();
+      }
+    }
+  };
 
   useEffect(() => {
     getList();
