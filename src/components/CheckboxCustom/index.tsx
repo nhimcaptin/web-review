@@ -1,5 +1,4 @@
 import { Box, Checkbox, CheckboxProps } from "@mui/material";
-import React from "react";
 
 const CheckboxCustom = (props: CheckboxProps) => {
   return (

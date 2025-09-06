@@ -34,8 +34,8 @@ const BootstrapDialog = styled(Dialog)(({ theme }) => ({
 const ModalReview = (props: any) => {
   const { defaultValues } = props;
   const { showLoading, hideLoading } = useLoading();
-  const [deleteImageUrls, setDeleteImageUrls] = useState<string[]>([]);
-  const [deleteVideoUrls, setDeleteVideoUrls] = useState<string[]>([]);
+  const [deleteImageUrls, setDeleteImageUrls] = useState<any[]>([]);
+  const [deleteVideoUrls, setDeleteVideoUrls] = useState<any[]>([]);
   const { handleSubmit, control } = useForm<any>({
     defaultValues: {
       images: defaultValues?.images || [],
@@ -56,8 +56,8 @@ const ModalReview = (props: any) => {
   const inputVideoRef = useRef<HTMLInputElement>(null);
 
   const uploadFiles = async (files: any) => {
-    const urlsFile = files.filter((item: any) => typeof item !== "string");
-    const urlsString = files.filter((item: any) => typeof item === "string");
+    const urlsFile = files.filter((item: any) => item instanceof File);
+    const urlsString = files.filter((item: any) => !(item instanceof File));
     if (Array.isArray(urlsFile) && urlsFile.length > 0) {
       const formData = new FormData();
       urlsFile.forEach((file: File) => {
@@ -85,7 +85,10 @@ const ModalReview = (props: any) => {
           });
           return [];
         }
-        const uploadedFiles = uploadResponse?.data?.map((x: any) => x?.filename);
+        const uploadedFiles = uploadResponse?.data?.map((x: any) => ({
+          filename: x?.filename || "",
+          frame: x?.extractedFrame?.frameFilename || "",
+        }));
         return [...uploadedFiles, ...urlsString];
       } catch (error) {
         toast.error(MESSAGE_API.errorApi, {
@@ -112,20 +115,20 @@ const ModalReview = (props: any) => {
       const response: any = props?.defaultValues
         ? await axiosInstance.put(URL_PATHS.UPDATE.replace(":id", props?.defaultValues?.id), data)
         : await axiosInstance.post(URL_PATHS.CREATE, data);
-      const _deleteImageUrls = deleteImageUrls.filter((item: any) => typeof item === "string");
+      const _deleteImageUrls = deleteImageUrls.filter((item: any) => !(item instanceof File));
       if (_deleteImageUrls.length > 0) {
         try {
           const deletePromises = _deleteImageUrls.map((filename: any) =>
-            axiosInstance.delete(URL_PATHS.DELETE_IMAGE.replace(":filename", filename), { params: { type: 'images' } })
+            axiosInstance.delete(URL_PATHS.DELETE_IMAGE.replace(":filename", filename?.filename), { params: { type: 'images' } })
           );
           await Promise.all(deletePromises);
         } catch (error) {}
       }
-      const _deleteVideoUrls = deleteVideoUrls.filter((item: any) => typeof item === "string");
+      const _deleteVideoUrls = deleteVideoUrls.filter((item: any) => !(item instanceof File));
       if (_deleteVideoUrls.length > 0) {
         try {
           const deletePromises = _deleteVideoUrls.map((filename: any) =>
-            axiosInstance.delete(URL_PATHS.DELETE_IMAGE.replace(":filename", filename), { params: { type: 'videos' } })
+            axiosInstance.delete(URL_PATHS.DELETE_IMAGE.replace(":filename", filename?.filename), { params: { type: 'videos' } })
           );
           await Promise.all(deletePromises);
         } catch (error) {}
@@ -226,7 +229,7 @@ const ModalReview = (props: any) => {
                         }
                       }}
                     />
-                    <label htmlFor="multiple-images-upload">
+                    <label htmlFor="multiple-images-upload" style={{marginRight: 10}}>
                       <Button
                         onClick={() => {
                           if (inputImageRef.current) {
@@ -241,12 +244,12 @@ const ModalReview = (props: any) => {
                     </label>
                     {value && value.length > 0 && (
                       <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-                        {value.map((img: File | string, index: number) => (
+                        {value.map((img: File | any, index: number) => (
                           <div key={index} style={{ height: "100px", width: "100px", position: "relative" }}>
                             <img
                               src={
-                                typeof img === "string"
-                                  ? import.meta.env.VITE_BASE_IMAGE + img
+                                !(img instanceof File) 
+                                  ? import.meta.env.VITE_BASE_IMAGE + img?.filename
                                   : URL.createObjectURL(img)
                               }
                               alt={`Preview ${index + 1}`}
@@ -303,7 +306,7 @@ const ModalReview = (props: any) => {
                         e.target.value = "";
                       }}
                     />
-                    <label htmlFor="multiple-videos-upload">
+                    <label htmlFor="multiple-videos-upload" style={{marginRight: 10}}>
                       <Button
                         onClick={() => {
                           if (inputVideoRef.current) {
@@ -319,9 +322,9 @@ const ModalReview = (props: any) => {
 
                     {value?.length > 0 && (
                       <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-                        {value.map((vid: File | string, index: number) => {
+                        {value.map((vid: File | any, index: number) => {
                           const src =
-                            vid instanceof File ? URL.createObjectURL(vid) : import.meta.env.VITE_BASE_VIDEO + vid;
+                            vid instanceof File ? URL.createObjectURL(vid) : import.meta.env.VITE_BASE_VIDEO + vid?.filename;
 
                           return (
                             <div key={index} style={{ height: 100, width: 150, position: "relative" }}>
