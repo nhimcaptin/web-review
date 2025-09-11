@@ -38,6 +38,8 @@ const ModalReview = (props: any) => {
   const [deleteVideoUrls, setDeleteVideoUrls] = useState<any[]>([]);
   const { handleSubmit, control } = useForm<any>({
     defaultValues: {
+      // images:  [],
+      // videos:  [],
       images: defaultValues?.images || [],
       videos: defaultValues?.videos || [],
       title: defaultValues?.title || "",
@@ -47,6 +49,8 @@ const ModalReview = (props: any) => {
       would_recommend: defaultValues?.would_recommend || false,
       user: defaultValues?.user || "",
       likes: defaultValues?.likes || 0,
+      orderSort: defaultValues?.orderSort ?? null,
+      outstanding: defaultValues?.outstanding || false,
     },
     mode: "onChange",
     reValidateMode: "onChange",
@@ -69,7 +73,6 @@ const ModalReview = (props: any) => {
             "Content-Type": "multipart/form-data",
           },
         });
-
 
         if (!uploadResponse?.success) {
           toast.error(MESSAGE_API.errorApi, {
@@ -104,22 +107,29 @@ const ModalReview = (props: any) => {
         });
       }
     }
-    return files
+    return files;
   };
 
   const onSubmit = async (data: any) => {
     try {
+      const _data = {
+        ...data,
+        orderSort: data?.orderSort ?? null,
+        likes: data?.likes ?? 0,
+      }
       showLoading();
       data.images = await uploadFiles(data?.images);
       data.videos = await uploadFiles(data?.videos);
       const response: any = props?.defaultValues
-        ? await axiosInstance.put(URL_PATHS.UPDATE.replace(":id", props?.defaultValues?.id), data)
-        : await axiosInstance.post(URL_PATHS.CREATE, data);
+        ? await axiosInstance.put(URL_PATHS.UPDATE.replace(":id", props?.defaultValues?.id), _data)
+        : await axiosInstance.post(URL_PATHS.CREATE, _data);
       const _deleteImageUrls = deleteImageUrls.filter((item: any) => !(item instanceof File));
       if (_deleteImageUrls.length > 0) {
         try {
           const deletePromises = _deleteImageUrls.map((filename: any) =>
-            axiosInstance.delete(URL_PATHS.DELETE_IMAGE.replace(":filename", filename?.filename), { params: { type: 'images' } })
+            axiosInstance.delete(URL_PATHS.DELETE_IMAGE.replace(":filename", filename?.filename), {
+              params: { type: "images" },
+            })
           );
           await Promise.all(deletePromises);
         } catch (error) {}
@@ -128,7 +138,9 @@ const ModalReview = (props: any) => {
       if (_deleteVideoUrls.length > 0) {
         try {
           const deletePromises = _deleteVideoUrls.map((filename: any) =>
-            axiosInstance.delete(URL_PATHS.DELETE_IMAGE.replace(":filename", filename?.filename), { params: { type: 'videos' } })
+            axiosInstance.delete(URL_PATHS.DELETE_IMAGE.replace(":filename", filename?.filename), {
+              params: { type: "videos" },
+            })
           );
           await Promise.all(deletePromises);
         } catch (error) {}
@@ -229,7 +241,7 @@ const ModalReview = (props: any) => {
                         }
                       }}
                     />
-                    <label htmlFor="multiple-images-upload" style={{marginRight: 10}}>
+                    <label htmlFor="multiple-images-upload" style={{ marginRight: 10 }}>
                       <Button
                         onClick={() => {
                           if (inputImageRef.current) {
@@ -248,7 +260,7 @@ const ModalReview = (props: any) => {
                           <div key={index} style={{ height: "100px", width: "100px", position: "relative" }}>
                             <img
                               src={
-                                !(img instanceof File) 
+                                !(img instanceof File)
                                   ? import.meta.env.VITE_BASE_IMAGE + img?.filename
                                   : URL.createObjectURL(img)
                               }
@@ -306,7 +318,7 @@ const ModalReview = (props: any) => {
                         e.target.value = "";
                       }}
                     />
-                    <label htmlFor="multiple-videos-upload" style={{marginRight: 10}}>
+                    <label htmlFor="multiple-videos-upload" style={{ marginRight: 10 }}>
                       <Button
                         onClick={() => {
                           if (inputVideoRef.current) {
@@ -324,7 +336,9 @@ const ModalReview = (props: any) => {
                       <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
                         {value.map((vid: File | any, index: number) => {
                           const src =
-                            vid instanceof File ? URL.createObjectURL(vid) : import.meta.env.VITE_BASE_VIDEO + vid?.filename;
+                            vid instanceof File
+                              ? URL.createObjectURL(vid)
+                              : import.meta.env.VITE_BASE_VIDEO + vid?.filename;
 
                           return (
                             <div key={index} style={{ height: 100, width: 150, position: "relative" }}>
@@ -355,6 +369,37 @@ const ModalReview = (props: any) => {
                   </div>
                 )}
               />
+            </Grid>
+            <Grid container size={12}>
+              <Grid size={4}>
+                <p style={{ fontWeight: 500, fontSize: 16, marginBottom: 5 }}>Order Sort</p>
+                <Controller
+                  control={control}
+                  name="orderSort"
+                  render={({ field: { onChange, value } }) => (
+                    <TextFieldCustom
+                      onChange={onChange}
+                      value={value}
+                      fullWidth
+                      disabled={props?.isView}
+                      placeholder="Enter order sort"
+                      type="number"
+                    />
+                  )}
+                />
+              </Grid>
+              <Grid size={4} style={{ display: "flex", alignItems: "end"}}>
+                <Controller
+                  control={control}
+                  name="outstanding"
+                  render={({ field: { onChange, value } }) => (
+                    <div style={{ display: "flex", alignItems: "center", height: "30px" }}>
+                      <p style={{ fontWeight: 500, fontSize: 16 }}>Outstanding</p>
+                      <Checkbox onChange={onChange} value={value} defaultChecked={value} />
+                    </div>
+                  )}
+                />
+              </Grid>
             </Grid>
             <Grid size={4}>
               <Controller
