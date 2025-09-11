@@ -38,8 +38,8 @@ const ModalReview = (props: any) => {
   const [deleteVideoUrls, setDeleteVideoUrls] = useState<any[]>([]);
   const { handleSubmit, control } = useForm<any>({
     defaultValues: {
-      // images:  [],
-      // videos:  [],
+      // images: [],
+      // videos: [],
       images: defaultValues?.images || [],
       videos: defaultValues?.videos || [],
       title: defaultValues?.title || "",
@@ -93,18 +93,8 @@ const ModalReview = (props: any) => {
           frame: x?.extractedFrame?.frameFilename || "",
         }));
         return [...uploadedFiles, ...urlsString];
-      } catch (error) {
-        toast.error(MESSAGE_API.errorApi, {
-          position: "top-right",
-          autoClose: 1000,
-          hideProgressBar: false,
-          closeOnClick: false,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "light",
-          transition: Bounce,
-        });
+      } catch (error: any) {
+        return Promise.reject(error);
       }
     }
     return files;
@@ -116,7 +106,7 @@ const ModalReview = (props: any) => {
         ...data,
         orderSort: data?.orderSort ?? null,
         likes: data?.likes ?? 0,
-      }
+      };
       showLoading();
       data.images = await uploadFiles(data?.images);
       data.videos = await uploadFiles(data?.videos);
@@ -172,8 +162,8 @@ const ModalReview = (props: any) => {
           transition: Bounce,
         });
       }
-    } catch (error) {
-      toast.error(MESSAGE_API.errorApi, {
+    } catch (error: any) {
+      toast.error(error?.response ? error?.response?.data?.message : MESSAGE_API.errorApi, {
         position: "top-right",
         autoClose: 1000,
         hideProgressBar: false,
@@ -388,7 +378,7 @@ const ModalReview = (props: any) => {
                   )}
                 />
               </Grid>
-              <Grid size={4} style={{ display: "flex", alignItems: "end"}}>
+              <Grid size={4} style={{ display: "flex", alignItems: "end" }}>
                 <Controller
                   control={control}
                   name="outstanding"
