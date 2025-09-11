@@ -36,6 +36,12 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 
 const columns: any = [
   {
+    id: "orderSort",
+    label: "Order Sort",
+    minWidth: 150,
+    align: "start",
+  },
+  {
     id: "user",
     label: "User Name",
     minWidth: 150,
